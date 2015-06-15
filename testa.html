@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Testa</title>
+<link rel="stylesheet" href="code/css/reset.css" />
+<link rel="stylesheet" href="code/css/text.css" />
+<link rel="stylesheet" href="code/css/960.css" />
+<script src="code/jquery.js"></script>
+<style type="text/css">
+	
+
+	.cell
+	{
+		height:60px;
+		border: 1px solid black;
+		font-size:42px;
+		text-align: center;
+	}
+
+	.cellSum
+	{
+		height:60px;
+		border: 1px solid black;
+		font-size:42px;
+		text-align: center;
+	}
+	 .cellspace
+	{
+		height:60px;
+		border: 1px solid white;
+		font-size:42px;
+		text-align: center;
+	}
+	
+	.pieceCell{
+		height:60px;
+		border: 1px solid black;
+		font-size:42px;
+		text-align: center;
+	}
+	.zero
+	{
+		background-color:white;			
+	}
+	.red
+	{
+		background-color:red;
+	}
+	.white
+	{
+		background-color:white;
+	}
+	.yellow
+	{
+		background-color:yellow;
+	}
+	.green
+	{
+		background-color:green;
+	}
+	.blue
+	{
+		background-color:blue;
+	}	
+	
+</style>
+<script language='javascript'>
+var zero=0;
+var white=1;
+var green=2;
+var yellow=3;
+var blue=4;
+var red=5;
+
+var colorMapping= {zero:0, white:1, green:2, yellow:3, blue:4, red:5};
+
+
+var twoPiece1= new Array("red","yellow");//5,3=8
+var twoPiece2= new Array("white","yellow");//1,3=4
+
+//var tiles=new Object();
+var piece0={leftTile:"green", middleTile:"white", rightTile:"blue", sum:0, used:false};
+var piece1={leftTile:"red", middleTile:"green", rightTile:"white", sum:0, used:false};
+
+var piece2={leftTile:"white", middleTile:"blue", rightTile:"yellow", sum:0, used:false};
+var piece3={leftTile:"blue", middleTile:"green", rightTile:"yellow", sum:0, used:false};
+var piece4={leftTile:"blue", middleTile:"red", rightTile:"white", sum:0, used:false};
+var piece5={leftTile:"yellow", middleTile:"red", rightTile:"green", sum:0, used:false};
+var piece6={leftTile:"green", middleTile:"blue", rightTile:"red", sum:0, used:false};
+
+
+
+var tiles=new Object();
+tiles[0]=piece0;
+tiles[1]=piece1;
+tiles[2]=piece2;
+tiles[3]=piece3;
+tiles[4]=piece4;
+tiles[5]=piece5;
+tiles[6]=piece6;
+
+var row0Config={pieceAlignment:"3,1,1", rowSum:0, pieceX:1, pieceY:1};
+var row1Config={pieceAlignment:"3,1,1", rowSum:0, pieceX:2, pieceY:1};
+var row2Config={pieceAlignment:"2,2,1", rowSum:0, pieceX:-1, pieceY:-1};
+var row3Config={pieceAlignment:"2,3", rowSum:0, pieceX:4, pieceY:3};
+var row4Config={pieceAlignment:"2,3", rowSum:0,pieceX:5, pieceY:3};
+
+
+var column0Config={pieceAlignment:"1,1,3",columnSum:0,pieceX:3, pieceY:1};
+var column1Config={pieceAlignment:"1,1,3", columnSum:0,pieceX:3, pieceY:2};
+var column2Config={pieceAlignment:"1,1,1,1,1", columnSum:0,pieceX:-1, pieceY:-1};
+var column3Config={pieceAlignment:"2,1,1,1", columnSum:0,pieceX:-1, pieceY:-1};
+var column4Config={pieceAlignment:"3,1,1", columnSum:0,pieceX:1, pieceY:5};
+
+
+
+var rowSums= new Object();
+rowSums[0]=row0Config;
+rowSums[1]=row1Config;
+rowSums[2]=row2Config;
+rowSums[3]=row3Config;
+rowSums[4]=row4Config;
+
+var columnSums=new Object();
+columnSums[0]=column0Config;
+columnSums[1]=column1Config;
+columnSums[2]=column2Config;
+columnSums[3]=column3Config;
+columnSums[4]=column4Config;
+
+
+var moves=[];
+
+
+
+
+function calculateSum()
+{
+	var localSum;
+	for(i=0;i<7;i++)
+	{
+
+	tiles[i].sum=getTileNumber(tiles[i].leftTile) + getTileNumber(tiles[i].middleTile)+ getTileNumber(tiles[i].rightTile);	
+	}
+
+}
+
+
+
+
+
+
+function getTileNumber(a)
+{
+	//console.log(a);
+	if(a.indexOf("red")>-1)
+	{
+		return red;
+	}
+	if(a.indexOf("blue")>-1)
+	{
+		return blue;
+	}
+	if(a.indexOf("green")>-1)
+	{
+		return green;
+	}
+	if(a.indexOf("yellow")>-1)
+	{
+		return yellow;
+	}
+	if(a.indexOf("white")>-1)
+	{
+		return white;
+	}
+	if(a.indexOf("zero")>-1)
+	{
+		return zero;
+	}	
+}		
+
+
+function calculateRowSum()
+{
+	//console.log(rowSums);
+	//return;
+	var rowIndex=0;
+	var rowSum=0;
+	//console.log($("div.puzzle").length);
+	$("div.puzzle").each(function(){
+
+			
+			rowSum=0;
+			$(this).children(".cell").each(function()
+			{
+	
+				tileNumber=getTileNumber($(this).attr("class"))
+				//console.log("rowIndex:"+rowIndex+"tileNumber:"+tileNumber);
+				rowSum=rowSum+tileNumber;	
+
+			
+			});
+			
+			
+
+			$(this).children(".cellSum").html(rowSum);
+			setRowSum(rowIndex, rowSum);
+			rowIndex=rowIndex+1;
+	});
+	
+
+	//console.log(rowSums);
+		
+
+
+	
+}
+
+function calculateColumnSum()
+{
+	//console.log(rowSums);
+	//return;
+	var columnIndex=0;
+	var col1Sum=0,col2Sum=0,col3Sum=0,col4Sum=0,col5Sum=0;
+	//console.log($("div.puzzle").length);
+	
+	$("div.puzzle").each(function(){
+
+			
+		//console.log($(this).children("div.col5").attr("class"));	
+		col1Sum=col1Sum+getTileNumber($(this).children("div.col1").attr("class"));
+		col2Sum=col2Sum+getTileNumber($(this).children("div.col2").attr("class"));	
+		col3Sum=col3Sum+getTileNumber($(this).children("div.col3").attr("class"));	
+		col4Sum=col4Sum+getTileNumber($(this).children("div.col4").attr("class"));		
+		col5Sum=col5Sum+getTileNumber($(this).children("div.col5").attr("class"));
+	});
+	
+	
+	$("div.col1sum").html(col1Sum);
+	setColumnSum(0,col1Sum);
+
+	$("div.col2sum").html(col2Sum);
+	setColumnSum(1,col2Sum);
+
+	$("div.col3sum").html(col3Sum);
+	setColumnSum(2,col3Sum);
+
+	$("div.col4sum").html(col4Sum);
+	setColumnSum(3,col4Sum);
+
+	$("div.col5sum").html(col5Sum);
+	setColumnSum(4,col5Sum);
+	
+
+		
+
+
+	
+}
+function getKeyByValue(object, value) {
+  return Object.keys(object).find(key => object[key] === value);
+}
+
+
+function verifyPuzzleCorrectness()
+{
+	for(i=0;i<5;i++)
+	{
+		rowSum=rowSums[i].rowSum;
+		columnSum=columnSums[i].columnSum;
+		console.log(i+": "+"rowSum:"+ rowSum+"columnSum:"+ columnSum);
+
+		if(rowSum>15 || columnSum>15)
+		{
+			return false;
+		}
+
+		
+	}	
+	
+	return true;
+}
+
+
+
+function setRowSum(number, value)
+{
+	rowSums[number].rowSum=value;	
+}
+
+function setColumnSum(number, value)
+{
+	columnSums[number].columnSum=value;
+	//console.log(rowSums);
+}
+
+function setPiecesColorAndNumbers()
+{
+	index=0;
+	
+	$("div.container_12").each(function(){
+		var isUsed=tiles[index].used;
+		//console.log(isUsed);
+		if(isUsed=="false" || isUsed==false)
+		{
+			var leftTileColor=tiles[index].leftTile;
+			var middleTileColor=tiles[index].middleTile;
+			var rightTileColor=tiles[index].rightTile;
+
+
+			$(this).children("div:nth-child(9)").addClass(leftTileColor).html(getTileNumber(leftTileColor));
+			$(this).children("div:nth-child(10)").addClass(middleTileColor).html(getTileNumber(middleTileColor));
+			$(this).children("div:nth-child(11)").addClass(rightTileColor).html(getTileNumber(rightTileColor));
+			$(this).children("div:nth-child(12)").html("=");
+			$(this).children("div:nth-child(13)").html(tiles[index].sum);
+	}
+		else
+		{
+			resetCell($(this).children("div:nth-child(9)"));
+			resetCell($(this).children("div:nth-child(10)"));
+			resetCell($(this).children("div:nth-child(11)"));
+			resetCell($(this).children("div:nth-child(12)"));
+			resetCell($(this).children("div:nth-child(13)"));
+			
+			
+			
+
+
+		}
+		index++;
+
+	});
+
+
+}
+
+
+
+
+	$( document ).ready(function() {
+		
+		$(".s1_4").removeClass("zero").addClass("yellow").html(yellow);
+		$(".s2_4").removeClass("zero").addClass("white").html(white);
+		$(".s3_4").removeClass("zero").addClass("red").html(red);
+		$(".s3_3").removeClass("zero").addClass("yellow").html(yellow);
+		calculateSum();
+		calculateRowSum();
+		calculateColumnSum();
+		setPiecesColorAndNumbers();
+		$(".cell").click(function(){
+			cellClass=$(this).attr("class");			
+			tileNumber=getTileNumber(cellClass);
+			//console.log(cellClass+" "+tileNumber);
+			nextTileNumber=tileNumber+1;
+			displayNumber=nextTileNumber;
+			if(nextTileNumber>5)
+			{
+				nextTileNumber=0;
+				displayNumber="";
+			}
+			
+			nextColor=getKeyByValue(colorMapping,nextTileNumber);
+
+				//console.log(nextColor);
+				$(this).removeClass("white");
+				$(this).removeClass("green");
+				$(this).removeClass("yellow");
+				$(this).removeClass("blue");
+				$(this).removeClass("red");
+				$(this).removeClass("zero");
+		
+				$(this).addClass(nextColor).html(displayNumber);
+
+			calculateRowSum();
+			calculateColumnSum();	
+
+			
+		
+		
+	});
+		
+	});
+
+function placePiece(pieceNumber, rotate=false, alignment="vertical", startIndexX, startIndexY)
+{
+	
+	piece=tiles[pieceNumber];
+	var ltile=[,,];
+	if(rotate)
+	{
+		ltile[0]=piece.rightTile;
+		ltile[1]=piece.middleTile;
+		ltile[2]=piece.leftTile;
+	}
+	else
+	{
+
+		ltile[0]=piece.leftTile;
+		ltile[1]=piece.middleTile;
+		ltile[2]=piece.rightTile;
+
+	}
+	var i;
+	ltileIndex=0;
+	if(alignment=="vertical")
+	{
+		for(i=startIndexX;i<startIndexX+3;i++)
+		{
+			var className="s"+i+"_"+startIndexY;			
+			resetCell($("div."+className));	
+			$("div."+className).addClass(ltile[ltileIndex]).html(getTileNumber(ltile[ltileIndex]));
+			ltileIndex=ltileIndex+1;
+			
+		}
+
+	}
+	else if(alignment=="horizontal")
+	{
+		for(i=startIndexY;i<startIndexY+3;i++)
+		{
+			var className="s"+startIndexX+"_"+startIndexY;
+			resetCell($("div."+className));			
+			$("div."+className).addClass(ltile[ltileIndex]).html(getTileNumber(ltile[ltileIndex]));
+			ltileIndex=ltileIndex+1;
+			
+		}
+		
+	}
+	
+	var lmove={pieceNumber:pieceNumber, alignment:alignment, startX:startIndexX, startY:startIndexY};
+	
+	addMove(lmove);
+
+	calculateRowSum();
+	calculateColumnSum();
+	updateTileUsed(pieceNumber);
+	setPiecesColorAndNumbers();
+	
+}
+
+function addMove(lmove)
+{
+	moves.push(lmove);	
+}
+
+function updateTileUsed(tileNumber)
+{
+	tiles[tileNumber].used=true;	
+	
+	return 0;
+
+}
+
+function resetCell(cellClass)
+{
+	
+	$(cellClass).removeClass("red green blue yellow white").addClass("zero").html("");
+	return 0;	
+}
+	
+</script>
+
+</head>
+<body>
+<div class="container_13">&nbsp;
+</div>
+
+<div class="container_12 puzzle">
+  
+	<div class="grid_1 cell zero col1 s1_1">&nbsp;</div>
+
+	<div class="grid_1 cell zero col2 s1_2">&nbsp;</div>
+
+	<div class="grid_1 cell zero col3 s1_3">&nbsp;</div>
+
+	<div class="grid_1 cell zero col4 s1_4">&nbsp;</div>
+
+	<div class="grid_1 cell zero col5 s1_5">&nbsp;</div>
+	<div class="grid_1">&nbsp;</div>
+	<div class="grid_1 cellSum zero s4_5">&nbsp;</div>
+	<div class="grid_1">&nbsp;</div>
+	<div class="grid_1 pieceCell">&nbsp;</div>
+	<div class="grid_1 pieceCell">&nbsp;</div>
+	<div class="grid_1 pieceCell">&nbsp;</div>
+	<div class="grid_1 cellspace">&nbsp;</div>
+
+	<div class="grid_1 pieceCell">&nbsp;</div>
+
+
+</div>
+
+
+<div class="container_12 puzzle">
+  
+	<div class="grid_1 cell zero col1 s2_1">&nbsp;</div>
+
+	<div class="grid_1 cell zero col2 s2_2">&nbsp;</div>
+
+	<div class="grid_1 cell zero col3 s2_3">&nbsp;</div>
+
+	<div class="grid_1 cell zero col4 s2_4">&nbsp;</div>
+
+	<div class="grid_1 cell zero col5 s2_5">&nbsp;</div>
+	<div class="grid_1">&nbsp;</div>
+	<div class="grid_1 cellSum zero s4_5">&nbsp;</div>
+	<div class="grid_1">&nbsp;</div>
+	<div class="grid_1 pieceCell">&nbsp;</div>
+	<div class="grid_1 pieceCell">&nbsp;</div>
+	<div class="grid_1 pieceCell">&nbsp;</div>
+	<div class="grid_1 cellspace">&nbsp;</div>
+
+	<div class="grid_1 pieceCell">&nbsp;</div>
+
+
+</div>
+
+<div class="container_12 puzzle">
+  
+	<div class="grid_1 cell zero col1 s3_1">&nbsp;</div>
+
+	<div class="grid_1 cell zero col2 s3_2">&nbsp;</div>
+
+	<div class="grid_1 cell zero col3 s3_3">&nbsp;</div>
+
+	<div class="grid_1 cell zero col4 s3_4">&nbsp;</div>
+
+	<div class="grid_1 cell zero col5 s3_5">&nbsp;</div>
+	<div class="grid_1">&nbsp;</div>
+	<div class="grid_1 cellSum zero s4_5">&nbsp;</div>
+	<div class="grid_1">&nbsp;</div>
+	<div class="grid_1 pieceCell">&nbsp;</div>
+	<div class="grid_1 pieceCell">&nbsp;</div>
+	<div class="grid_1 pieceCell">&nbsp;</div>
+	<div class="grid_1 cellspace">&nbsp;</div>
+
+	<div class="grid_1 pieceCell">&nbsp;</div>
+
+
+</div>
+
+<div class="container_12 puzzle">
+  
+	<div class="grid_1 cell zero col1 s4_1">&nbsp;</div>
+
+	<div class="grid_1 cell zero col2 s4_2">&nbsp;</div>
+
+	<div class="grid_1 cell zero col3 s4_3">&nbsp;</div>
+
+	<div class="grid_1 cell zero col4 s4_4">&nbsp;</div>
+
+	<div class="grid_1 cell zero col5 s4_5">&nbsp;</div>
+	<div class="grid_1">&nbsp;</div>
+	<div class="grid_1 cellSum zero s4_5">&nbsp;</div>
+	<div class="grid_1">&nbsp;</div>
+	<div class="grid_1 pieceCell">&nbsp;</div>
+	<div class="grid_1 pieceCell">&nbsp;</div>
+	<div class="grid_1 pieceCell">&nbsp;</div>
+	<div class="grid_1 cellspace">&nbsp;</div>
+	<div class="grid_1 pieceCell">&nbsp;</div>
+
+
+	
+
+</div>
+
+<div class="container_12 puzzle">
+  
+	<div class="grid_1 cell zero col1 s5_1">&nbsp;</div>
+
+	<div class="grid_1 cell zero col2 s5_2">&nbsp;</div>
+
+	<div class="grid_1 cell zero col3 s5_3">&nbsp;</div>
+
+	<div class="grid_1 cell zero col4 s5_4">&nbsp;</div>
+
+	<div class="grid_1 cell zero col5 s5_5">&nbsp;</div>
+
+	<div class="grid_1">&nbsp;</div>
+	<div class="grid_1 cellSum zero">&nbsp;</div>
+	<div class="grid_1">&nbsp;</div>
+	<div class="grid_1 pieceCell">&nbsp;</div>
+	<div class="grid_1 pieceCell">&nbsp;</div>
+	<div class="grid_1 pieceCell">&nbsp;</div>
+	<div class="grid_1 cellspace">&nbsp;</div>
+	<div class="grid_1 pieceCell">&nbsp;</div>
+
+	
+
+</div>
+
+<div class="container_12">
+  
+	<div class="grid_1 cellspace ">&nbsp;</div>
+
+	<div class="grid_1 cellspace ">&nbsp;</div>
+
+	<div class="grid_1 cellspace ">&nbsp;</div>
+
+	<div class="grid_1 cellspace ">&nbsp;</div>
+
+	<div class="grid_1 cellspace ">&nbsp;</div>
+
+	<div class="grid_1">&nbsp;</div>
+	<div class="grid_1 cellspace zero">&nbsp;</div>
+	<div class="grid_1">&nbsp;</div>
+	<div class="grid_1 pieceCell">&nbsp;</div>
+	<div class="grid_1 pieceCell">&nbsp;</div>
+	<div class="grid_1 pieceCell">&nbsp;</div>
+	<div class="grid_1 cellspace">&nbsp;</div>
+	<div class="grid_1 pieceCell">&nbsp;</div>
+	
+
+</div>
+
+
+
+<div class="container_12">
+  
+	<div class="grid_1 cellSum col1sum zero ">&nbsp;</div>
+
+	<div class="grid_1 cellSum col2sum zero ">&nbsp;</div>
+
+	<div class="grid_1 cellSum col3sum zero ">&nbsp;</div>
+
+	<div class="grid_1 cellSum col4sum zero ">&nbsp;</div>
+
+	<div class="grid_1 cellSum col5sum zero ">&nbsp;</div>
+
+	<div class="grid_1">&nbsp;</div>
+	<div class="grid_1 cellspace zero ">&nbsp;</div>
+	<div class="grid_1">&nbsp;</div>
+	<div class="grid_1 pieceCell">&nbsp;</div>
+	<div class="grid_1 pieceCell">&nbsp;</div>
+	<div class="grid_1 pieceCell">&nbsp;</div>
+	<div class="grid_1 cellspace">&nbsp;</div>
+	<div class="grid_1 pieceCell">&nbsp;</div>
+
+
+	
+
+</div>
+
+
+
+</body>
+
